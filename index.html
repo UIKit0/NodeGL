@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Gephi: JavaScript GEXF Viewer</title>
+        <title>NodeXL: Google Spreadsheet Viewer</title>
         <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-        <link rel="stylesheet" type="text/css" href="styles/gexfjs.css" />
-        <link rel="stylesheet" type="text/css" href="styles/jquery-ui.css" />
+        <link rel="stylesheet" type="text/css" href="styles/nodegljs.css" />
+        <link rel="stylesheet" type="text/css" href="styles/jquery-ui-1.8.16.custom.css" />
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
         <script type="text/javascript">
         // Fallback in case JQuery isn't available
@@ -14,9 +14,20 @@
         </script>
         <script type="text/javascript" src="js/jquery.mousewheel.min.js"></script>
         <script type="text/javascript" src="js/jquery-ui-1.8.16.custom.min.js"></script>
-        <script type="text/javascript" src="js/gexfjs.js"></script>
+        <script type="text/javascript" src="js/nodegljs.js"></script>
+        <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+		<script type="text/javascript">
+		 	google.load('visualization', '1');
+		 	google.setOnLoadCallback(buildQueriesforGoogleInit);
+		</script>
     </head>
     <body>
+    	<div id="loading">
+		  <h1 id="aboutLoading"><img src="img/loading.gif"><br>
+		    Loading data</h1>
+		  <p>NodeXL Google Spreadsheet Viewer is a fork of <a href="http://github.com/raphv/gexf-js" target="_blank">Gexf-JS Viewer</a> by <a href="http://twitter.com/raphv" target="_blank">@raphv</a><br> 
+		    this version by Martin Hawksey (<a href="http://twitter.com/mhawksey" target="_blank">@mhawksey</a>)</p>
+		</div>
         <div id="zonecentre" class="gradient">
             <canvas id="carte" width="0" height="0"></canvas>
             <ul id="ctlzoom">
@@ -35,6 +46,9 @@
                 <li>
                     <a href="#" id="edgesButton"> </a>
                 </li>
+                <li>
+                    <a href="#" id="helpButton"> </a>
+                </li>
             </ul>
         </div>
         <div id="overviewzone" class="gradient">
@@ -48,7 +62,7 @@
         </div>
         <div id="titlebar">
             <div id="maintitle">
-                <h1><a href="http://gephi.org/" target="_blank" title="Made with Gephi">Gephi: JavaScript GEXF Viewer</a></h1>
+                <h1><a href="http://mashe.hawksey.info/nodegl/" target="_blank" title="Related blog post">NodeXL: Google Spreadsheet Viewer</a></h1>
             </div>
             <form id="recherche">
                 <input id="searchinput" class="inputgris" autocomplete="off" />
@@ -57,5 +71,35 @@
         </div>
         <ul id="autocomplete">
         </ul>
+        
+        <div id="help">
+		  <h1>Help/About</h1>
+		  <p>TAGSExplorer is an interface to <a href="http://mashe.hawksey.info/2011/02/twitteralyticsv2/" target="_blank">TAGS based Google Spreadsheets</a> of archived tweets. This data is analysed and the conversations between people are extracted and appear as connections. The more conversations a person has with other people increases the size of their screen name.</p>
+		  <p>You can navigate these conversations in several ways:</p>
+		  <h2>Hovering over a node</h2>
+		  <p><img style="float: right;" title="image" src="http://mashe.hawksey.info/wp-content/uploads/2011/11/image_thumb.png" width="192" height="110"></p>
+		  <p>Hovering over a node gives you a summary of the data recorded in the archive. This includes:</p>
+		  <ul>
+		    <li>the <strong>number of tweets</strong> they made;</li>
+		    <li>the <strong>number of @replies</strong> they received; and</li>
+		    <li>the <strong>number of @mentions</strong>.</li>
+		  </ul>
+		  <h2>Clicking on a node</h2>
+		  <p>Clicking on a node lets you see the <strong>summary of tweets, @replies and @mentions that person made</strong>. The displayed tweets are <strong>integrated into the Twitter service allowing you to Favour, Retweet and Reply to individual messages</strong>.</p>
+		  <h2>Replaying the conversation</h2>
+		  <p>From the summary window you can<strong> ‘Replay Tweets’</strong> which lets you see the conversations that person had <strong>condensed into 30 seconds</strong>. Connections between people are separately identified as <strong>Retweets (dashed blue line)</strong>, <strong>@reply (solid black line)</strong> and <strong>@mention (dashed black line)</strong>. The conversation playback also indicates peaks in a persons Twitter activity.</p>
+		  <p>During the playback you can <strong>filter conversations</strong> by clicking on a node. This will display only the tweets that @replies, @mentions or retweets.&nbsp;&nbsp;</p>
+		  <p align="center"><img src="http://mashe.hawksey.info/wp-content/uploads/2011/11/image_thumb1.png" width="710" height="366"></p>
+		  <h2>Advance Tips</h2>
+		  <p>It's possible to filter the data displayed using the Google Visualization API Query Language. Read <a href="http://mashe.hawksey.info/2011/11/tagsexplorer-queryable/" target="_blank">this post</a> for more information on usage.</p>
+		  <hr/>
+		  <div style="text-align:center ">
+		    <p><strong>TAGSExplorer was developed by <br>
+		      Martin Hawksey (<a href="http://twitter.com/mhawksey" target="_blank">@mhawksey</a>)</strong></p>
+		    <p style="font-size:9px;">Powered by &nbsp;&nbsp;<a href="http://mbostock.github.com/d3/" target="_blank">d3.js</a>, <a href="http://docs.google.com/" target="_blank">Google Spreadsheets</a> and <a href="http://code.google.com/apis/chart/" target="_blank">Google Visualization API</a><br>
+		      <br>
+		      (H/T <a href="http://gis.yohman.com" target="_blank">yohman</a> for <a href="http://bl.ocks.org/1271916" target="_blank">Twitter Smash</a>)</p>
+		  </div>
+		</div>
     </body>
 </html>
