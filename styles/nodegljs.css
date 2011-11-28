@@ -302,3 +302,9 @@ a:hover {
 .ui-icon.ui-icon-closethick{
 	float:right;
 }
+.ui-widget-content a {
+	color: #06a8de; font-weight: bold; text-decoration: none;
+}
+.ui-widget-content a:hover {
+    color: #000080;
+}

@@ -345,10 +345,12 @@ function chargeGraphe() {
             for (i=0; i<_nodes.getNumberOfRows(); i++){	
                 //var _n = $(this),
                  var  _id = _nodes.getValue(i,nCols['Do Not Edit ID']),
-                    _label = _nodes.getValue(i,nCols['Labels Label']),
+                    _label = _nodes.getValue(i,nCols['Vertex']),
+                    _displayLabel = _nodes.getValue(i,nCols['Labels Label']),
                     _d = {
                         id: _id,
-                        label: _label
+                        label: _label,
+                        displayLabel: _displayLabel 
                     },
                     //_pos = _n.find("viz\\:position,position"),
 	                _x = _nodes.getValue(i,nCols['X']),
@@ -371,7 +373,7 @@ function chargeGraphe() {
                     base : {
                         x : _deltax + _echelle * _x + GexfJS.baseWidth/4 ,
                         y : _deltay - _echelle * _y + GexfJS.baseHeight ,
-                        r : _echelle * _size * 100
+                        r : _echelle * (_size ? _size : 1 ) * 100
                     }
                 }
                 _d.couleur = {
@@ -394,7 +396,7 @@ function chargeGraphe() {
 				}
                
                 GexfJS.graph.nodeIndexById.push(_id);
-                GexfJS.graph.nodeIndexByLabel.push(_label.toLowerCase());
+                GexfJS.graph.nodeIndexByLabel.push(_label);
                 GexfJS.graph.nodeList.push(_d);
                 GexfJS.ctxMini.fillStyle = _d.couleur.base;
                 GexfJS.ctxMini.beginPath();
@@ -670,7 +672,7 @@ function traceMap() {
 function hoverAC() {
     $("#autocomplete li").removeClass("hover");
     $("#liac_"+GexfJS.autoCompletePosition).addClass("hover");
-    GexfJS.params.activeNode = GexfJS.graph.nodeIndexByLabel.indexOf( $("#liac_"+GexfJS.autoCompletePosition).text().toLowerCase() );
+    GexfJS.params.activeNode = GexfJS.graph.nodeIndexByLabel.indexOf( $("#liac_"+GexfJS.autoCompletePosition).text() );
 }
 
 function changePosAC(_n) {
@@ -679,7 +681,7 @@ function changePosAC(_n) {
 }
 
 function updateAutoComplete(_sender) {
-    var _val = $(_sender).val().toLowerCase();
+    var _val = new RegExp($(_sender).val(),"ig");
     var _ac = $("#autocomplete");
     if (_val != GexfJS.dernierAC || _ac.html() == "") {
         GexfJS.dernierAC = _val;
@@ -772,7 +774,7 @@ function init() {
         });
     $("#recherche").submit(function() {
         if (GexfJS.graph) {
-            displayNode( GexfJS.graph.nodeIndexByLabel.indexOf($("#searchinput").val().toLowerCase()), true);
+            displayNode( GexfJS.graph.nodeIndexByLabel.indexOf($("#searchinput").val()), true);
         }
         return false;
     });
@@ -822,7 +824,7 @@ function init() {
         $('#help').dialog('open');
         return false;
     });
-    $("#help").dialog({modal:true, height:600, width: 750, autoOpen:false, title: "Help"});
+    $("#help").dialog({modal:true, height:650, width: 750, autoOpen:false, title: "Help"});
     
     $("#aUnfold").click(function() {
         var _cG = $("#colonnegauche");
@@ -851,7 +853,7 @@ function init() {
 function buildQueriesforGoogleInit(){
 	if (key == ""){
 		$("#loading").hide();
-		$("#help").dialog({modal:true, height:600, width: 750, autoOpen:true, title: "Help"});
+		$("#help").dialog({modal:true, height:650, width: 750, autoOpen:true, title: "Help"});
 	} else {
 		getSheetIDsFromKey(key);
 		var url = 'https://spreadsheets.google.com/tq?key='+key+'&sheet='+_sheetID['Edges']+'&pub=1';
@@ -910,7 +912,6 @@ function handleOverallMetricsSelectResponse(response) {
 }
 function getNodeColourByGroup(_label){
 	var colArr = [0,0,0];
-	console.log(_label);
 	var viewGroupVert = new google.visualization.DataView(_groupVertices);
 	viewGroupVert.setRows(viewGroupVert.getFilteredRows([{column:1, value: _label}]));
 	if (viewGroupVert.getNumberOfRows()>0){
