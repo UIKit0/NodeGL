@@ -3,7 +3,16 @@
  * Thanks to Vincenzo Cosenza for the italian translation
  * */
 
-// Namespace
+
+var _nodes = [],
+    _edges = [],
+    _groups = [],
+    _groupVert = [],
+    _overall = [],
+    _sheetID = [];   
+var key = document.location.hash.length > 1 ? document.location.hash.substr(1) : '';
+
+// Namespace    
 var GexfJS = {
     lensRadius : 200,
     lensGamma : 0.5,
@@ -14,8 +23,8 @@ var GexfJS = {
     oldZoneGraphe : {},
     params : {
         zoomLevel : 0,
-        centreX : 400,
-        centreY : 350,
+        centreX : 600,
+        centreY : 400,
         activeNode : -1,
         currentNode : -1,
         showEdges : true,
@@ -25,10 +34,10 @@ var GexfJS = {
     minZoom : -3,
     maxZoom : 10,
     overviewWidth : 200,
-    overviewHeight : 175,
+    overviewHeight : 150,
     baseWidth : 800,
-    baseHeight : 700,
-    overviewScale : .25,
+    baseHeight : 800,
+    overviewScale : 0.18,
     totalScroll : 0,
     autoCompletePosition : 0,
     i18n : {
@@ -114,12 +123,7 @@ function displayNode(_indiceNoeud, _recentre) {
                 });
             });
         _chaine += '<h3><div class="largepill" style="background: ' + _d.couleur.base +'"></div>' + _d.label + '</h3>';
-        _chaine += '<h4>' + strLang("nodeAttr") + '</h4>';
-        _chaine += '<ul><li><b>id</b> : ' + _d.id + '</li>';
-        for (var i in _d.attributes) {
-            _chaine += '<li><b>' + strLang(i) + '</b> : ' + _d.attributes[i] + '</li>';
-        }
-        _chaine += '</ul><h4>' + ( GexfJS.graph.directed ? strLang("inLinks") : strLang("undirLinks") ) + '</h4><ul>';
+        _chaine += '<h4>' + ( GexfJS.graph.directed ? strLang("inLinks") : strLang("undirLinks") ) + '</h4><ul>';
         for (var i in GexfJS.graph.edgeList) {
             var _e = GexfJS.graph.edgeList[i]
             if ( _e.target == _indiceNoeud ) {
@@ -135,7 +139,13 @@ function displayNode(_indiceNoeud, _recentre) {
                 _chaine += '<li><div class="smallpill" style="background: ' + _n.couleur.base +'"></div><a href="#" onmouseover="GexfJS.params.activeNode = ' + _e.target + '" onclick="displayNode(' + _e.target + ', true); return false;">' + _n.label + '</a></li>';
             }
         }
-        _chaine += '</ul><p></p>';
+        _chaine += '</ul>';
+        _chaine += '<h4>' + strLang("nodeAttr") + '</h4>';
+        _chaine += '<ul><li><b>id</b> : ' + _d.id + '</li>';
+        for (var i in _d.attributes) {
+            _chaine += '<li><b>' + strLang(i) + '</b> : ' + _d.attributes[i] + '</li>';
+        }
+        _chaine += '</ul>';
         $("#leftcontent").html(_chaine);
         if (_recentre) {
             GexfJS.params.centreX = _b.x;
@@ -283,39 +293,47 @@ function initializeMap() {
     });
     GexfJS.timeRefresh = setInterval(traceMap,60);
     if (!GexfJS.graph) {
-        chargeGraphe();
+		chargeGraphe();
     }
 }
 
 function chargeGraphe() {
-    
-    $.ajax({
-        url: ( document.location.hash.length > 1 ? document.location.hash.substr(1) : "default.gexf" ),
-        dataType: "xml",
-        success: function(data) {
+	var eCols = [],
+	nCols = [];
+	for (i=0; i<_edges.getNumberOfColumns(); i++){
+		eCols[_edges.getColumnLabel(i)] = i;
+	}
+	for (i=0; i<_nodes.getNumberOfColumns(); i++){
+		nCols[_nodes.getColumnLabel(i)] = i;
+	}
+    //$.ajax({
+       // url: ( document.location.hash.length > 1 ? document.location.hash.substr(1) : "default.gexf" ),
+        //dataType: "xml",
+        //success: function(data) {
             var _s = new Date();
-            var _g = $(data).find("graph"),
-                _nodes = _g.children().filter("nodes").children(),
-                _edges = _g.children().filter("edges").children();
+            //var _g = $(data).find("graph"),
+            //var _nodes = _g.children().filter("nodes").children(),
+            //    _edges = _g.children().filter("edges").children();
             GexfJS.graph = {
-                directed : ( _g.attr("defaultedgetype") == "directed" ),
-                source : data,
+                directed : _overall.length > 1 ? _overall.getValue[0,1] : "Directed" ,
+                //source : data,
                 nodeList : [],
                 nodeIndexById : [],
                 nodeIndexByLabel : [],
                 edgeList : []
             }
             var _xmin = 1e9, _xmax = -1e9, _ymin = 1e9, _ymax = -1e9; _marge = 30;
-            $(_nodes).each(function() {
-                var _n = $(this),
-                _pos = _n.find("viz\\:position,position"),
-                _x = _pos.attr("x"),
-                _y = _pos.attr("y");
+            //$(_nodes).each(function() {
+            for (i=0; i<_nodes.getNumberOfRows(); i++){
+                //var _n = $(this),
+                //_pos = _n.find("viz\\:position,position"),
+                var _x = _nodes.getValue(i,nCols['X']),
+                   _y = _nodes.getValue(i,nCols['Y']);
                 _xmin = Math.min(_x, _xmin);
                 _xmax = Math.max(_x, _xmax);
                 _ymin = Math.min(_y, _ymin);
                 _ymax = Math.max(_y, _ymax);
-            });
+            }//);
             
             var _echelle = Math.min( ( GexfJS.baseWidth - _marge ) / ( _xmax - _xmin ) , ( GexfJS.baseHeight - _marge ) / ( _ymax - _ymin ) );
             var _deltax = ( GexfJS.baseWidth - _echelle * ( _xmin + _xmax ) ) / 2;
@@ -323,28 +341,37 @@ function chargeGraphe() {
             
             GexfJS.ctxMini.clearRect(0, 0, GexfJS.overviewWidth, GexfJS.overviewHeight);
             
-            $(_nodes).each( function() {
-                var _n = $(this),
-                    _id = _n.attr("id"),
-                    _label = _n.attr("label"),
+            //$(_nodes).each( function() {
+            for (i=0; i<_nodes.getNumberOfRows(); i++){	
+                //var _n = $(this),
+                 var  _id = _nodes.getValue(i,nCols['Do Not Edit ID']),
+                    _label = _nodes.getValue(i,nCols['Labels Label']),
                     _d = {
                         id: _id,
                         label: _label
                     },
-                    _pos = _n.find("viz\\:position,position"),
-                    _x = _pos.attr("x"),
-                    _y = _pos.attr("y"),
-                    _size = _n.find("viz\\:size,size").attr("value"),
-                    _col = _n.find("viz\\:color,color"),
-                    _r = _col.attr("r"),
-                    _g = _col.attr("g"),
-                    _b = _col.attr("b"),
-                    _attr = _n.find("attvalue");
+                    //_pos = _n.find("viz\\:position,position"),
+	                _x = _nodes.getValue(i,nCols['X']),
+	                _y = _nodes.getValue(i,nCols['Y']),
+                    _size = _nodes.getValue(i,nCols['Size']),
+                    _col = _nodes.getValue(i,nCols['Visual Properties Color']);
+                    
+                    if (_col.length){
+	                    var colS = _col.split(',');
+		             } else if(typeof _groups.length == "undefined"){
+		                var colS = getNodeColourByGroup(_label);
+		             } else {
+		                var colS = [0,0,0];
+		             }
+		             var _r = colS[0],
+		                 _g = colS[1],
+		                 _b = colS[2];
+                    //_attr = _n.find("attvalue");
                 _d.coords = {
                     base : {
-                        x : _deltax + _echelle * _x,
-                        y : _deltay - _echelle * _y,
-                        r : _echelle * _size
+                        x : _deltax + _echelle * _x + GexfJS.baseWidth/4 ,
+                        y : _deltay - _echelle * _y + GexfJS.baseHeight ,
+                        r : _echelle * _size * 100
                     }
                 }
                 _d.couleur = {
@@ -357,11 +384,15 @@ function chargeGraphe() {
                     gris : "rgba(" + Math.floor(84 + .33 * _r) + "," + Math.floor(84 + .33 * _g) + "," + Math.floor(84 + .33 * _b) + ",.5)"
                 }
                 _d.attributes = [];
-                $(_attr).each(function() {
+                /*$(_attr).each(function() {
                     var _a = $(this),
                         _for = _a.attr("for");
                     _d.attributes[ _for ? _for : 'attribute_' + _a.attr("id") ] = _a.attr("value");
-                });
+                });*/
+               	for (j in nCols){
+					_d.attributes[j] = _nodes.getValue(i,nCols[j]);
+				}
+               
                 GexfJS.graph.nodeIndexById.push(_id);
                 GexfJS.graph.nodeIndexByLabel.push(_label.toLowerCase());
                 GexfJS.graph.nodeList.push(_d);
@@ -370,20 +401,22 @@ function chargeGraphe() {
                 GexfJS.ctxMini.arc( _d.coords.base.x * GexfJS.overviewScale , _d.coords.base.y * GexfJS.overviewScale , _d.coords.base.r * GexfJS.overviewScale + 1 , 0 , Math.PI*2 , true );
                 GexfJS.ctxMini.closePath();
                 GexfJS.ctxMini.fill();
-            });
+            }//);
             
-            $(_edges).each(function() {
-                var _e = $(this),
-                    _sid = _e.attr("source"),
-                    _six = GexfJS.graph.nodeIndexById.indexOf(_sid);
-                    _tid = _e.attr("target"),
-                    _tix = GexfJS.graph.nodeIndexById.indexOf(_tid);
-                    _w = _e.find('attvalue[for="weight"]').attr('value');
-                    _col = _e.find("color");
+            //$(_edges).each(function() {
+            for (i=0; i<_edges.getNumberOfRows(); i++){	
+                //var _e = $(this),
+                var _sid = _edges.getValue(i,eCols['Vertex 1']),
+                    _six = GexfJS.graph.nodeIndexByLabel.indexOf(_sid);
+                    _tid = _edges.getValue(i,eCols['Vertex 2']),
+                    _tix = GexfJS.graph.nodeIndexByLabel.indexOf(_tid);
+                    _w = _edges.getValue(i,eCols['Width']);
+                    _col = _edges.getValue(i,eCols['Label Text Color']);
                 if (_col.length) {
-                    var _r = _col.attr("r"),
-                        _g = _col.attr("g"),
-                        _b = _col.attr("b");
+					var colS = _col.split(',');
+	                var _r = colS[0],
+	                    _g = colS[1],
+	                    _b = colS[2];
                 } else {
                     var _scol = GexfJS.graph.nodeList[_six].couleur.rgb;
                     if (GexfJS.graph.directed) {
@@ -400,16 +433,16 @@ function chargeGraphe() {
                 GexfJS.graph.edgeList.push({
                     source : _six,
                     target : _tix,
-                    width : ( _w ? _w : 1 ) * _echelle,
+                    width : ( _w ? _w : 1 ) * _echelle * 10,
                     couleur : "rgba(" + _r + "," + _g + "," + _b + ",.7)"
                 });
-            });
+            }//);
             
             GexfJS.imageMini = GexfJS.ctxMini.getImageData(0, 0, GexfJS.overviewWidth, GexfJS.overviewHeight);
-        
+        $("#loading").hide();
         //changeNiveau(0);
-        }
-    });
+        //}
+    //});
 }
 
 function getNodeFromPos( _coords ) {
@@ -676,9 +709,7 @@ function updateButtonStates() {
     $("#edgesButton").attr("class",GexfJS.params.showEdges?"":"off")
         .attr("title", strLang( GexfJS.params.showEdges ? "edgeOff" : "edgeOn" ) );
 }
-
-$(document).ready(function() {
-    
+function init() {
     var lang = ( navigator.language ? navigator.language.substr(0,2).toLowerCase() : ( navigator.userLanguage ? navigator.userLanguage.substr(0,2).toLowerCase() : "en" ) );
     GexfJS.lang = (GexfJS.i18n[lang] ? lang : "en");
     
@@ -692,7 +723,6 @@ $(document).ready(function() {
     GexfJS.ctxGraphe = document.getElementById('carte').getContext('2d');
     GexfJS.ctxMini = document.getElementById('overview').getContext('2d');
     updateSizes();
-    
     initializeMap();
     
     $("#searchinput")
@@ -788,6 +818,12 @@ $(document).ready(function() {
         GexfJS.params.showEdges = !GexfJS.params.showEdges;
         return false;
     });
+    $("#helpButton").click(function () {
+        $('#help').dialog('open');
+        return false;
+    });
+    $("#help").dialog({modal:true, height:600, width: 750, autoOpen:false, title: "Help"});
+    
     $("#aUnfold").click(function() {
         var _cG = $("#colonnegauche");
         if (_cG.offset().left < 0) {
@@ -811,4 +847,108 @@ $(document).ready(function() {
         }
         return false;
     });
-});
+}//);
+function buildQueriesforGoogleInit(){
+	if (key == ""){
+		$("#loading").hide();
+		$("#help").dialog({modal:true, height:600, width: 750, autoOpen:true, title: "Help"});
+	} else {
+		getSheetIDsFromKey(key);
+		var url = 'https://spreadsheets.google.com/tq?key='+key+'&sheet='+_sheetID['Edges']+'&pub=1';
+		var query = new google.visualization.Query(url);
+		query.send(handleEdgesSelectResponse);
+	}
+}
+function handleEdgesSelectResponse(response) {
+	if (response.isError()) {
+		alert('Error in query: ' + response.getMessage() + ' ' + response.getDetailedMessage());
+	} else {
+		_edges = response.getDataTable();
+	}
+	var url = 'https://spreadsheets.google.com/tq?key='+key+'&sheet='+_sheetID['Vertices']+'&pub=1';
+	var query = new google.visualization.Query(url);
+	query.send(handleVerticesSelectResponse);
+	
+}
+function handleVerticesSelectResponse(response) {
+	if (response.isError()) {
+		alert('Error in query: ' + response.getMessage() + ' ' + response.getDetailedMessage());
+	} else {	
+		_nodes = response.getDataTable();
+	}
+	var url = 'https://spreadsheets.google.com/tq?key='+key+'&sheet='+_sheetID['Groups']+'&pub=1';
+	var query = new google.visualization.Query(url);
+	query.send(handleGroupsSelectResponse);
+}
+function handleGroupsSelectResponse(response) {
+	if (response.isError()) {
+		alert('Error in query: ' + response.getMessage() + ' ' + response.getDetailedMessage());
+	} else {	
+		_groups = response.getDataTable();
+	}
+	var url = 'https://spreadsheets.google.com/tq?key='+key+'&sheet='+_sheetID['Group Vertices']+'&pub=1';
+	var query = new google.visualization.Query(url);
+	query.send(handleGroupVerticesSelectResponse);
+}
+function handleGroupVerticesSelectResponse(response) {
+	if (response.isError()) {
+		alert('Error in query: ' + response.getMessage() + ' ' + response.getDetailedMessage());
+	} else {	
+		_groupVertices = response.getDataTable();
+	}
+	var url = 'https://spreadsheets.google.com/tq?key='+key+'&sheet='+_sheetID['Overall Metrics']+'&pub=1';
+	var query = new google.visualization.Query(url);
+	query.send(handleOverallMetricsSelectResponse);
+}
+function handleOverallMetricsSelectResponse(response) {
+	if (response.isError()) {
+		alert('Error in query: ' + response.getMessage() + ' ' + response.getDetailedMessage());
+	} else {	
+		_overall = response.getDataTable();
+	}
+	init();
+}
+function getNodeColourByGroup(_label){
+	var colArr = [0,0,0];
+	console.log(_label);
+	var viewGroupVert = new google.visualization.DataView(_groupVertices);
+	viewGroupVert.setRows(viewGroupVert.getFilteredRows([{column:1, value: _label}]));
+	if (viewGroupVert.getNumberOfRows()>0){
+		var viewGroups = new google.visualization.DataView(_groups);
+		viewGroups.setRows(viewGroups.getFilteredRows([{column:0, value: viewGroupVert.getValue(0,0)}]));
+		if (viewGroups.getNumberOfRows()>0){
+			var temp = viewGroups.getValue(0,1);
+			colArr = temp.split(",");
+		}
+	}
+	return colArr;
+}
+
+function getSheetIDsFromKey(key){
+	var url='https://spreadsheets.google.com/feeds/worksheets/'+key+'/public/basic?alt=json';
+	  $.ajax({
+        url: url,
+        async: false,
+        dataType: 'json',
+        success: function(json) {
+          for (var u in json['feed']['entry']) {
+			var sheetName = json['feed']['entry'][u]['title']['$t'];
+			if (sheetName == "Edges" || sheetName == "Vertices" ||sheetName == "Groups" || sheetName == "Group Vertices" ||sheetName == "Overall Metrics"){
+				var sheetQueryString = getQueryVars(json['feed']['entry'][u]['link'][2]['href']);
+				_sheetID[sheetName] = sheetQueryString['sheet'];
+			}
+		  }
+        }
+    });
+}
+function getQueryVars(url){
+	var vars = [], hash;
+	var hashes = url.slice(url.indexOf('?') + 1).split('&');
+	for(var i = 0; i < hashes.length; i++)
+	{
+	  hash = hashes[i].split('=');
+	  vars.push(hash[0]);
+	  vars[hash[0]] = hash[1];
+	}
+	return vars;
+}

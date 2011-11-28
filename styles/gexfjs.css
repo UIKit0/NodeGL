@@ -19,7 +19,7 @@ body {
 /* EN HAUT */
 
 #titlebar {
-    background: #ffffff; border-bottom: 1px solid #CCC; position: fixed; margin: 0; padding: 0; left: 0; top: 0; right: 0; height: 45px; overflow: hidden;
+    background: #ffffff; border-bottom: 1px solid #CCC; position: fixed; margin: 0; padding: 0; left: 0; top: 0; right: 0; height: 57px; overflow: hidden;
 }
 
 #maintitle {
@@ -32,26 +32,43 @@ h1 {
 }
 
 h1 a {
-    background: url(../img/gephi.png) no-repeat;
+    background: url(../img/nodexl.png) no-repeat;
     color: #208020;
     display: block;
-    height:45px;
+    height:57px;
     margin: 0;
+    margin-left:4px;
     text-indent: -9999px;
-    width: 195px;
+    width: 500px;
 }
 
 #searchinput {
-    background: #fff url(../img/search.gif) no-repeat right;
-    border: 1px solid #DDD;
-    font-size: 14px; line-height: 14px, height: 14px;
-    left: 250px;
-    padding: 1px 4px; margin: 0;
-    position: absolute;
-    top: 10px;
-    width: 320px;
+	background: white url(../img/search.gif) no-repeat right;
+	border: 1px solid #DDD;
+	font-size: 14px;
+	line-height: 14px;
+	height: 14px;
+	left: 520px;
+	padding: 1px 4px;
+	margin: 0;
+	position: absolute;
+	top: 20px;
+	width: 320px;
 }
-
+#loading {
+    position:fixed;
+    top: 50%;
+    left: 50%;
+    width:36em;
+    height:12em;
+    margin-top: -6em; /*set to a negative number 1/2 of your height*/
+    margin-left: -15em; /*set to a negative number 1/2 of your width*/
+    border: 1px solid #ccc;
+    background-color: #FFFFFF;
+	text-align:center;
+	font-size:13px;
+	z-index:999;
+}
 #searchinput:focus, #searchinput:active {
     border-color:#aaa;
 }
@@ -143,6 +160,16 @@ h1 a {
 
 #edgesButton.off:hover {
     background-position: -108px -36px;
+}
+#helpButton {
+    display: block; width: 36px; height: 36px; background:url(../img/help.png); margin: 0 auto;
+}
+#helpButton {
+    background-position: -72px 0;
+}
+
+#helpButton:hover {
+    background-position: -36px 0;
 }
 
 #zoomSlider {
@@ -271,4 +298,7 @@ a:hover {
 
 #autocomplete img {
     float: left; border: 0; width: 24px; height: 24px; margin: 2px 6px;
+}
+.ui-icon.ui-icon-closethick{
+	float:right;
 }
