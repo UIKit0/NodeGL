@@ -344,13 +344,12 @@ function chargeGraphe() {
             //$(_nodes).each( function() {
             for (i=0; i<_nodes.getNumberOfRows(); i++){	
                 //var _n = $(this),
-                 var  _id = _nodes.getValue(i,nCols['Do Not Edit ID']),
-                    _label = _nodes.getValue(i,nCols['Vertex']),
-                    _displayLabel = _nodes.getValue(i,nCols['Labels Label']),
-                    _d = {
+                 var _id = _nodes.getValue(i,nCols['Vertex']),
+                    _label = _nodes.getValue(i,nCols['Labels Label']);
+                    if (_label=="") _label = _id;
+                    var _d = {
                         id: _id,
-                        label: _label,
-                        displayLabel: _displayLabel 
+                        label: _label
                     },
                     //_pos = _n.find("viz\\:position,position"),
 	                _x = _nodes.getValue(i,nCols['X']),
@@ -361,7 +360,7 @@ function chargeGraphe() {
                     if (_col.length){
 	                    var colS = _col.split(',');
 		             } else if(typeof _groups.length == "undefined"){
-		                var colS = getNodeColourByGroup(_label);
+		                var colS = getNodeColourByGroup(_id);
 		             } else {
 		                var colS = [0,0,0];
 		             }
@@ -409,9 +408,9 @@ function chargeGraphe() {
             for (i=0; i<_edges.getNumberOfRows(); i++){	
                 //var _e = $(this),
                 var _sid = _edges.getValue(i,eCols['Vertex 1']),
-                    _six = GexfJS.graph.nodeIndexByLabel.indexOf(_sid);
+                    _six = GexfJS.graph.nodeIndexById.indexOf(_sid);
                     _tid = _edges.getValue(i,eCols['Vertex 2']),
-                    _tix = GexfJS.graph.nodeIndexByLabel.indexOf(_tid);
+                    _tix = GexfJS.graph.nodeIndexById.indexOf(_tid);
                     _w = _edges.getValue(i,eCols['Width']);
                     _col = _edges.getValue(i,eCols['Label Text Color']);
                 if (_col.length) {
